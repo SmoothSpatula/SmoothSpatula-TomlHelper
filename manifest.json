@@ -1,8 +1,8 @@
 ﻿{
 	"name": "TomlHelper",
 	"version_number": "1.0.0",
-	"website_url": "https://github.com/SmoothSpatula/SmoothSpatula-RoRRRandomizer",
-	"description": "Randomizes character, skills and artifacts when you enter a run.",
+	"website_url": "https://github.com/SmoothSpatula/SmoothSpatula-TomlHelper",
+	"description": "Helper mod for saving and loading Toml save files for SmoothSpatula mods.",
 	"dependencies": [
 		"ReturnOfModding-ReturnOfModding-1.0.0"
 	]
