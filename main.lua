@@ -18,7 +18,7 @@ load_cfg = function(plugin_name)
     local full_path = path.combine(cfg_path, plugin_name, cfg_name)
     local succeeded, loaded_table = pcall(toml.decodeFromFile, full_path)
     if not succeeded then
-        print("Error loading "..full_path)
+        print("Couldn't find config for "..full_path)
         return nil
     end
     log.info("Config file for "..plugin_name.." successfully loaded")
@@ -26,7 +26,6 @@ load_cfg = function(plugin_name)
 end
 
 save_cfg = function (plugin_name, table)
-    if verify_folder(plugin_name) == nil then return nil end
     local full_path = path.combine(cfg_path, plugin_name, cfg_name)
     succeeded, documentOrErrorMessage = pcall(toml.encodeToFile, table, { file = full_path, overwrite = true })
     if not succeeded then
@@ -42,7 +41,7 @@ verify_folder = function(plugin_name)
     local full_cfg_path = path.combine(cfg_path, plugin_name)
     local dirs = path.get_directories(cfg_path)
     for _,v in pairs(dirs) do
-        if v == full_cfg_path then return 0 end
+        if v == full_cfg_path then return "dirExists" end
     end
 
     directoryCreated = path.create_directory(full_cfg_path)
@@ -50,11 +49,14 @@ verify_folder = function(plugin_name)
         print("Couldn't create config folder for " .. plugin_name)
         return nil
     end
-    return 0
+    return "dirCreated"
 end
 
 -- Call this
 config_update = function(plugin_name, default_table)
+    local verified = verify_folder(plugin_name)
+    if verified == nil then return nil end
+
     local loaded_table = load_cfg(plugin_name)
     -- If config doesn't exist, create it
     if not loaded_table then
@@ -69,8 +71,5 @@ config_update = function(plugin_name, default_table)
         end
     end
     save_cfg(plugin_name, loaded_table)
-    return loaded_table
-end
-    save_cfg(plugin_path, loaded_table)
     return loaded_table
 end
