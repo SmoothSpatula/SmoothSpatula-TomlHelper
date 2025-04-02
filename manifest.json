@@ -1,6 +1,6 @@
 {
 	"name": "TomlHelper",
-	"version_number": "1.0.1",
+	"version_number": "1.1.0",
 	"website_url": "https://github.com/SmoothSpatula/SmoothSpatula-TomlHelper",
 	"description": "Helper mod for saving and loading Toml config files for SmoothSpatula mods.",
 	"dependencies": [

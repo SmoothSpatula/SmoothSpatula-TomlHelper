@@ -129,7 +129,7 @@ Toml.config_update = function(plugin_name, default_table, flags)
     local verified = verify_folder(plugin_name)
     if verified == nil then return nil end
 
-    local loaded_table = Toml.load_cfg(plugin_name)
+    local loaded_table = load_cfg(plugin_name)
     -- If config doesn't exist, create it
     if not loaded_table then
         save_cfg_internal(plugin_name, default_table)
@@ -138,7 +138,7 @@ Toml.config_update = function(plugin_name, default_table, flags)
     -- If it does exist, fill in missing fields  (should we also clean up extra fields? no)
     for k, v in pairs(default_table) do
         if loaded_table[k] == nil then
-            log.info("Adding "..k.." field to "..plugin_name.." config") -- weird problem where empty tables get an "added message" every time
+            --log.info("Adding "..k.." field to "..plugin_name.." config") -- weird problem where empty tables get an "added message" every time
             if type(v) == "table" then
                 loaded_table[k] = deepcopy(v)
             else
