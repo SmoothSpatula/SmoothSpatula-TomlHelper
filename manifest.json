@@ -4,6 +4,7 @@
 	"website_url": "https://github.com/SmoothSpatula/SmoothSpatula-TomlHelper",
 	"description": "Helper mod for saving and loading Toml config files for SmoothSpatula mods.",
 	"dependencies": [
-		"ReturnOfModding-ReturnOfModding-1.0.29"
+		"ReturnOfModding-ReturnOfModding-1.0.29",
+		"MGReturns-ENVY-1.1.1"
 	]
 }
