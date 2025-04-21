@@ -97,18 +97,26 @@ end
 -- == Public Functions == --
 
 Toml.save_cfg = function (plugin_cfg_name, tab)
-    local plugin_name, config_name
-    if type(plugin_cfg_name) == "table" then
-        plugin_name = plugin_cfg_name["plugin"]
-        config_name = plugin_cfg_name["config"]
-    else
-        plugin_name = plugin_cfg_name
-        config_name = default_cfg_name
+    if not gui.is_open() then
+        Toml.save_cfg_internal(plugin_cfg_name, tab)
+    else 
+        local plugin_name, config_name
+        if type(plugin_cfg_name) == "table" then
+            plugin_name = plugin_cfg_name["plugin"]
+            config_name = plugin_cfg_name["config"]
+        else
+            plugin_name = plugin_cfg_name
+            config_name = default_cfg_name
+        end
+
+        
+        
+
+        if not save_buffer[plugin_name] then
+            save_buffer[plugin_name] = {}
+        end
+        save_buffer[plugin_name][config_name] = tab
     end
-    if not save_buffer[plugin_name] then
-        save_buffer[plugin_name] = {}
-    end
-    save_buffer[plugin_name][config_name] = tab
 end
 
 Toml.save_cfg_internal = function(plugin_cfg_name, tab)
@@ -212,7 +220,7 @@ end
 -- == ImGui == --
 
 -- save cfg once per frame if buffered
-gui.add_imgui(function()
+gui.add_always_draw_imgui(function()
     for k, v in pairs(save_buffer) do
         for k2, v2 in pairs(v) do
             Toml.save_cfg_internal({plugin=k, config=k2}, v2)
