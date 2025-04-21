@@ -10,7 +10,7 @@ envy.auto()
 
 Toml = {}
 local cfg_path = path.get_parent(_ENV["!config_mod_folder_path"])
-local cfg_name = "cfg.toml"
+local default_cfg_name = "cfg"
 
 local cfg_defaults = {} -- stores the default cfgs
 local cfg_flags = {} -- stores the flags
@@ -66,23 +66,6 @@ end
 
 -- == Private Functions == --
 
-local save_cfg_internal = function(plugin_name, tab)
-    local full_path = path.combine(cfg_path, plugin_name, cfg_name)
-
-    -- remove empty tables from the cfg
-    local write_table = deepcopy(tab)
-    if cfg_flags[plugin_name] and cfg_flags[plugin_name].drop_empty_tables then
-        remove_empty_tables_rec(write_table)
-    end
-
-    succeeded, documentOrErrorMessage = pcall(toml.encodeToFile, write_table, { file = full_path, overwrite = true })
-    if not succeeded then
-        log.warning(documentOrErrorMessage)
-        return nil
-    end
-    return 0
-end
-
 -- Makes sure the config folder exists (Toml can't create it)
 local verify_folder = function(plugin_name)
     local full_cfg_path = path.combine(cfg_path, plugin_name)
@@ -100,11 +83,11 @@ local verify_folder = function(plugin_name)
     return directoryCreated
 end
 
-local load_cfg = function(plugin_name)
-    local full_path = path.combine(cfg_path, plugin_name, cfg_name)
+local load_cfg = function(plugin_name, config_name)
+    local full_path = path.combine(cfg_path, plugin_name, config_name..".toml")
     local succeeded, loaded_table = pcall(toml.decodeFromFile, full_path)
     if not succeeded then
-        log.warning("Couldn't find config for "..full_path)
+        log.warning("Couldn't find existing config for "..full_path)
         return nil
     end
     log.info("Config file for "..plugin_name.." successfully loaded")
@@ -113,26 +96,81 @@ end
 
 -- == Public Functions == --
 
-Toml.save_cfg = function (plugin_name, tab)
-    save_buffer[plugin_name] = tab
+Toml.save_cfg = function (plugin_cfg_name, tab)
+    local plugin_name, config_name
+    if type(plugin_cfg_name) == "table" then
+        plugin_name = plugin_cfg_name["plugin"]
+        config_name = plugin_cfg_name["config"]
+    else
+        plugin_name = plugin_cfg_name
+        config_name = default_cfg_name
+    end
+    if not save_buffer[plugin_name] then
+        save_buffer[plugin_name] = {}
+    end
+    save_buffer[plugin_name][config_name] = tab
+end
+
+Toml.save_cfg_internal = function(plugin_cfg_name, tab)
+    local plugin_name, config_name
+    if type(plugin_cfg_name) == "table" then
+        plugin_name = plugin_cfg_name["plugin"]
+        config_name = plugin_cfg_name["config"]
+    else
+        plugin_name = plugin_cfg_name
+        config_name = default_cfg_name
+    end
+
+    local full_path = path.combine(cfg_path, plugin_name, config_name..".toml")
+
+    -- remove empty tables from the cfg
+    local write_table = deepcopy(tab)
+
+    -- check flags
+    if cfg_flags[plugin_name] and cfg_flags[plugin_name][config_name].drop_empty_tables then
+        remove_empty_tables_rec(write_table)
+    end
+
+    -- write
+    succeeded, documentOrErrorMessage = pcall(toml.encodeToFile, write_table, { file = full_path, overwrite = true })
+    if not succeeded then
+        log.warning(documentOrErrorMessage)
+        return nil
+    end
+    return 0
 end
 
 -- Call this at start
-Toml.config_update = function(plugin_name, default_table, flags)
+Toml.config_update = function(plugin_cfg_name, default_table, flags)
+    local plugin_name, config_name
+    if type(plugin_cfg_name) == "table" then
+        plugin_name = plugin_cfg_name["plugin"]
+        config_name = plugin_cfg_name["config"]
+    else
+        plugin_name = plugin_cfg_name
+        config_name = default_cfg_name
+    end
+
 
     -- Save default params and flags
-    cfg_defaults[plugin_name] = deepcopy(default_table)
+    if not cfg_defaults[plugin_name] then 
+        cfg_defaults[plugin_name] = {}
+    end
+    cfg_defaults[plugin_name][config_name] = deepcopy(default_table)
     if flags ~= nil then
-        cfg_flags[plugin_name] = deepcopy(flags)
+        if not cfg_flags[plugin_name] then 
+            cfg_flags[plugin_name] = {}
+        end
+        cfg_flags[plugin_name][config_name] = deepcopy(flags)
     end
 
     local verified = verify_folder(plugin_name)
     if verified == nil then return nil end
 
-    local loaded_table = load_cfg(plugin_name)
+    local loaded_table = load_cfg(plugin_name, config_name)
     -- If config doesn't exist, create it
     if not loaded_table then
-        save_cfg_internal(plugin_name, default_table)
+        Toml.save_cfg_internal(plugin_cfg_name, default_table)
         return default_table
     end
     -- If it does exist, fill in missing fields  (should we also clean up extra fields? no)
@@ -146,14 +184,23 @@ Toml.config_update = function(plugin_name, default_table, flags)
             end    
         end
     end
-    save_cfg_internal(plugin_name, loaded_table)
+    Toml.save_cfg_internal(plugin_cfg_name, loaded_table)
     return loaded_table
 end
 
 -- Resets to default table stored in cfg_defaults
-Toml.reset_default = function(plugin_name)
-    local default_table = cfg_defaults[plugin_name]
-    local saved = save_cfg_internal(plugin_name, default_table)
+Toml.reset_default = function(plugin_cfg_name)
+    local plugin_name, config_name
+    if type(plugin_cfg_name) == "table" then
+        plugin_name = plugin_cfg_name["plugin"]
+        config_name = plugin_cfg_name["config"]
+    else
+        plugin_name = plugin_cfg_name
+        config_name = default_cfg_name
+    end
+
+    local default_table = cfg_defaults[plugin_name][config_name]
+    local saved = Toml.save_cfg_internal(plugin_cfg_name, default_table)
     if saved == nil then
         log.warning("Failed to reset "..plugin_name.." config to default.", 0)
     else
@@ -167,7 +214,9 @@ end
 -- save cfg once per frame if buffered
 gui.add_imgui(function()
     for k, v in pairs(save_buffer) do
-        save_cfg_internal(k, v)
+        for k2, v2 in pairs(v) do
+            Toml.save_cfg_internal({plugin=k, config=k2}, v2)
+        end
         save_buffer[k] = nil
     end
 end)

@@ -3,3 +3,5 @@
 * Added reset_default
 * Added drop_empty_tables flag (hinyb suggestion)
 * Changed writing to cfg to only happen once per ImGui frame (hinyb suggestion)
+* Added a way to have multiple configs per plugin
+* You can specify cfg_name using a table

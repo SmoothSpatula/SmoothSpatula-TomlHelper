@@ -16,17 +16,33 @@ params = {
 }
 params = Toml.config_update(_ENV["!guid"], params, {drop_empty_tables = true}) -- Load and Save (merge)
 
+-- or
+
+params = Toml.config_update(_ENV["!guid"], params) -- this will create plugin_name/cfg.toml
+
+-- or if you want to make multiple configs
+
+Toml.config_update({plugin = _ENV["!guid"], config = "myconfig"} , params) -- this will create plugin_name/myconfig.toml
+
 ```
 The drop_empty_tables flag enables recursive elimination of empty tables inside of the cfg file.
 
 * Saving the config
 ```
 Toml.save_cfg(_ENV["!guid"], params)
+
+-- or if you have multiple config files
+
+Toml.save_cfg({plugin = _ENV["!guid"], config = "myconfig"}, params)
 ```
 
 * Resetting config to default
 ```
 params = Toml.reset_default(_ENV["!guid"])
+
+-- or 
+
+params = Toml.reset_default({plugin = _ENV["!guid"], config = "myconfig"})
 ```
 
 
