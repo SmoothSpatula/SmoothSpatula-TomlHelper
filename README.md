@@ -29,11 +29,13 @@ The drop_empty_tables flag enables recursive elimination of empty tables inside 
 
 * Saving the config
 ```
-Toml.save_cfg(_ENV["!guid"], params)
+Toml.save_cfg(_ENV["!guid"], params) -- use this inside of ImGui
 
 -- or if you have multiple config files
 
 Toml.save_cfg({plugin = _ENV["!guid"], config = "myconfig"}, params)
+
+Toml.save_cfg_internal({plugin = _ENV["!guid"], config = "myconfig"}, params) -- use this outside of ImGui
 ```
 
 * Resetting config to default
@@ -44,6 +46,8 @@ params = Toml.reset_default(_ENV["!guid"])
 
 params = Toml.reset_default({plugin = _ENV["!guid"], config = "myconfig"})
 ```
+
+* 
 
 
 * DEPRECATED (still works) Initializing and loading the config
