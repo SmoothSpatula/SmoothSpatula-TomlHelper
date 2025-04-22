@@ -64,6 +64,15 @@ local function deepcopy(o, seen)
     return no
 end
 
+local function extract_names(plugin_cfg_name)
+    local plugin_name, config_name
+    if type(plugin_cfg_name) == "table" then
+        return plugin_cfg_name["plugin"], plugin_cfg_name["config"]
+    else
+        return plugin_cfg_name, default_cfg_name
+    end
+end
+
 -- == Private Functions == --
 
 -- Makes sure the config folder exists (Toml can't create it)
@@ -100,18 +109,7 @@ Toml.save_cfg = function (plugin_cfg_name, tab)
     if not gui.is_open() then
         Toml.save_cfg_internal(plugin_cfg_name, tab)
     else 
-        local plugin_name, config_name
-        if type(plugin_cfg_name) == "table" then
-            plugin_name = plugin_cfg_name["plugin"]
-            config_name = plugin_cfg_name["config"]
-        else
-            plugin_name = plugin_cfg_name
-            config_name = default_cfg_name
-        end
-
-        
-        
-
+        local plugin_name, config_name = extract_names(plugin_cfg_name)
         if not save_buffer[plugin_name] then
             save_buffer[plugin_name] = {}
         end
@@ -120,15 +118,7 @@ Toml.save_cfg = function (plugin_cfg_name, tab)
 end
 
 Toml.save_cfg_internal = function(plugin_cfg_name, tab)
-    local plugin_name, config_name
-    if type(plugin_cfg_name) == "table" then
-        plugin_name = plugin_cfg_name["plugin"]
-        config_name = plugin_cfg_name["config"]
-    else
-        plugin_name = plugin_cfg_name
-        config_name = default_cfg_name
-    end
-
+    local plugin_name, config_name = extract_names(plugin_cfg_name)
     local full_path = path.combine(cfg_path, plugin_name, config_name..".toml")
 
     -- remove empty tables from the cfg
@@ -150,16 +140,7 @@ end
 
 -- Call this at start
 Toml.config_update = function(plugin_cfg_name, default_table, flags)
-    local plugin_name, config_name
-    if type(plugin_cfg_name) == "table" then
-        plugin_name = plugin_cfg_name["plugin"]
-        config_name = plugin_cfg_name["config"]
-    else
-        plugin_name = plugin_cfg_name
-        config_name = default_cfg_name
-    end
-
-
+    local plugin_name, config_name = extract_names(plugin_cfg_name)
     -- Save default params and flags
     if not cfg_defaults[plugin_name] then 
         cfg_defaults[plugin_name] = {}
@@ -198,15 +179,7 @@ end
 
 -- Resets to default table stored in cfg_defaults
 Toml.reset_default = function(plugin_cfg_name)
-    local plugin_name, config_name
-    if type(plugin_cfg_name) == "table" then
-        plugin_name = plugin_cfg_name["plugin"]
-        config_name = plugin_cfg_name["config"]
-    else
-        plugin_name = plugin_cfg_name
-        config_name = default_cfg_name
-    end
-
+    local plugin_name, config_name = extract_names(plugin_cfg_name)
     local default_table = cfg_defaults[plugin_name][config_name]
     local saved = Toml.save_cfg_internal(plugin_cfg_name, default_table)
     if saved == nil then
