@@ -1,4 +1,4 @@
--- Toml-helper v1.1.0
+-- Toml-helper v1.1.1
 -- SmoothSpatula
 
 -- == Setup == --
@@ -35,16 +35,6 @@ remove_empty_tables_rec = function(tab)
     end
 end
 
--- for testing purposes
--- function print_table(tab)
---     for k, v in pairs(tab) do
---         print(k, v)
---         if type(v) == "table" then
---             print_table(v)
---         end
---     end
--- end
-
 -- from islet8 on StackOverflow https://stackoverflow.com/a/16077650
 local function deepcopy(o, seen)
     seen = seen or {}
@@ -65,12 +55,10 @@ local function deepcopy(o, seen)
 end
 
 local function extract_names(plugin_cfg_name)
-    local plugin_name, config_name
     if type(plugin_cfg_name) == "table" then
         return plugin_cfg_name["plugin"], plugin_cfg_name["config"]
-    else
-        return plugin_cfg_name, default_cfg_name
     end
+    return plugin_cfg_name, default_cfg_name
 end
 
 -- == Private Functions == --
@@ -193,7 +181,7 @@ end
 -- == ImGui == --
 
 -- save cfg once per frame if buffered
-gui.add_always_draw_imgui(function()
+gui.add_imgui(function()
     for k, v in pairs(save_buffer) do
         for k2, v2 in pairs(v) do
             Toml.save_cfg_internal({plugin=k, config=k2}, v2)

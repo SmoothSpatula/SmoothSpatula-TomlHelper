@@ -1,13 +1,11 @@
 # SmoothSpatula-TomlHelper
 
-Helper mod for saving and loading Toml config files for SmoothSpatula mods.
+Helper mod for saving and loading Toml config files.
 
-### Usage example
-
-
+### Usage 
 
 
-Initializing and loading the config
+* Initializing and loading the config
 ```
 mods["SmoothSpatula-TomlHelper"].auto()
 params = {
@@ -45,8 +43,7 @@ params = Toml.reset_default(_ENV["!guid"])
 params = Toml.reset_default({plugin = _ENV["!guid"], config = "myconfig"})
 ```
 
-* 
-
+---
 
 * DEPRECATED (still works) Initializing and loading the config
 ```
@@ -58,3 +55,11 @@ mods.on_all_mods_loaded(function() for k, v in pairs(mods) do if type(v) == "tab
     params = Toml.config_update(_ENV["!guid"], params) -- Load Save
 end)
 ```
+
+
+## Special Thanks To
+* The Return Of Modding team
+* hinyb
+
+## Contact
+For questions or bug reports, you can find us in the [RoRR Modding Server](https://discord.gg/VjS57cszMq) @Miguelito @Umigatari
